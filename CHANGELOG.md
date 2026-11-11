@@ -7,6 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 This project is a derivative work; see [`NOTICE`](NOTICE) for provenance and the list of modified
 files, and [`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md) for the audit of the upstream package.
 
+## [Unreleased]
+
+### Fixed
+
+- Enabling `syncEmail` / `syncPhone` now automatically adds the `email` / `phone` scope to the VK
+  authorization request. Previously an admin could enable contact sync but forget the scope and get
+  a profile without contacts, with no error.
+- Russian local phone numbers in the `8XXXXXXXXXX` form are normalised to `+7XXXXXXXXXX` instead of
+  being dropped.
+- Added `[vkid]` diagnostics (scope and field presence, no values) and
+  [`docs/VK-CONTACTS.md`](docs/VK-CONTACTS.md) with the VK ID/Logto checklist and deployment notes.
+
 ## [1.1.0] — 2026-11-11
 
 ### Added

@@ -41,6 +41,30 @@ export const resolveApiBaseUrl = (config?: Pick<VkidConfig, 'apiBaseUrl'>): stri
   (config?.apiBaseUrl ?? defaultApiBaseUrl).replace(/\/+$/, '');
 
 /**
+ * Make the requested scope match the enabled contact-sync switches.
+ *
+ * VK ID only returns `email` / `phone` when the corresponding scope is requested.
+ * The admin already makes the security decision with the `syncEmail` / `syncPhone`
+ * switches; forgetting to also edit the scope string silently produced a profile
+ * without contacts. Adding the scope here keeps the two settings consistent.
+ */
+export const addContactScopes = (
+  scope: string | undefined,
+  config: Pick<VkidConfig, 'syncEmail' | 'syncPhone'>,
+): string => {
+  const tokens = (scope?.trim() || defaultScope).split(/\s+/).filter(Boolean);
+
+  if (config.syncEmail && !tokens.includes('email')) {
+    tokens.push('email');
+  }
+  if (config.syncPhone && !tokens.includes('phone')) {
+    tokens.push('phone');
+  }
+
+  return tokens.join(' ');
+};
+
+/**
  * Error payload built from a non-2xx VK ID response.
  *
  * VK ID does not standardise its error bodies, so `error` and `error_description` are provider text

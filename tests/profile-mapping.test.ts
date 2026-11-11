@@ -110,6 +110,13 @@ describe('profile mapping (scenario 12)', () => {
     expect(userInfo.phone).toBe('+79001234567');
   });
 
+  it('[S12] normalizes the Russian local 8XXXXXXXXXX form to +7XXXXXXXXXX', () => {
+    const userInfo = mapVkUser(makeConfig({ syncPhone: true }), makeUser({ phone: '89991234567' }));
+
+    expect(userInfo.phone).toBe('+79991234567');
+    expect(normalizePhone('8 (999) 123-45-67')).toBe('+79991234567');
+  });
+
   it('[S12] normalizes formatted and international phone numbers when syncPhone is true', () => {
     expect(normalizePhone('7 (900) 123-45-67')).toBe('+79001234567');
     expect(normalizePhone('+44 20 7183 8750')).toBe('+442071838750');
@@ -117,7 +124,7 @@ describe('profile mapping (scenario 12)', () => {
   });
 
   it('[S12] drops unusable phone values when syncPhone is true', () => {
-    for (const phone of ['call me maybe', '12345', '+12', '89991234567', '']) {
+    for (const phone of ['call me maybe', '12345', '+12', '']) {
       const userInfo = mapVkUser(makeConfig({ syncPhone: true }), makeUser({ phone }));
       expect('phone' in userInfo).toBe(false);
     }

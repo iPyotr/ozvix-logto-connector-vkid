@@ -16,6 +16,7 @@ import {
 } from '@logto/connector-kit';
 
 import {
+  addContactScopes,
   buildAuthorizationUrl,
   exchangeAuthorizationCode,
   fetchVkUser,
@@ -175,6 +176,22 @@ const handleCallback = async (
 
   const user = await fetchVkUser({ config, accessToken: tokens.access_token });
 
+  // Diagnostic only: never log values or tokens. This tells us whether VK granted
+  // the email/phone scopes and whether the user_info payload actually contains
+  // those fields; both are required before mapVkUser can forward them.
+  // eslint-disable-next-line no-console
+  console.info(
+    '[vkid] user_info presence:',
+    JSON.stringify({
+      email: user.email !== undefined,
+      phone: user.phone !== undefined,
+      first_name: user.first_name !== undefined,
+      token_scope: tokens.scope ?? null,
+      syncEmail: config.syncEmail === true,
+      syncPhone: config.syncPhone === true,
+    }),
+  );
+
   // The VK user id is present in both the token response and the profile. A mismatch means the
   // access token belongs to a different user than the profile being read (token substitution);
   // Logto would otherwise attach the wrong identity to the authorization code.
@@ -218,11 +235,15 @@ const getAuthorizationUri =
       vk_state: payload.state,
     });
 
+    const scope = addContactScopes(payload.scope ?? config.scope, config);
+    // eslint-disable-next-line no-console
+    console.info('[vkid] authorize scope:', scope);
+
     return buildAuthorizationUrl({
       clientId: config.clientId,
       redirectUri: payload.redirectUri,
       state: payload.state,
-      scope: payload.scope ?? config.scope,
+      scope,
       codeChallenge,
       apiBaseUrl: resolveApiBaseUrl(config),
     });

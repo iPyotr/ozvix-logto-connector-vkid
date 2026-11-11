@@ -1,0 +1,10 @@
+# Overlay a freshly built connector bundle onto an existing Logto image.
+#
+# This is useful when the Logto base image is already built and only
+# connector/lib/index.js changed. Build lib/ first with `npm run build`.
+#
+#   docker build -f deploy/Dockerfile.connector-lib \
+#     --build-arg BASE_IMAGE=ozvix/logto-vkid:1.46.0-vkid.1 \
+#     -t ozvix/logto-vkid:1.46.0-vkid.2 .
+FROM ${BASE_IMAGE}
+COPY lib /etc/logto/packages/core/connectors/connector-ozvix-vkid/lib

@@ -115,6 +115,13 @@ export const normalizePhone = (value: string | undefined): string | undefined =>
     return `+${digits}`;
   }
 
+  // VK users often store the number in the local Russian format (8XXXXXXXXXX).
+  // Treating it as an international country code would either be rejected or
+  // produce an invalid +8... value, so convert it to the +7 form explicitly.
+  if (!hasPlus && digits.length === 11 && digits.startsWith('8')) {
+    return `+7${digits.slice(1)}`;
+  }
+
   if (hasPlus && digits.length >= 8 && digits.length <= 15) {
     return `+${digits}`;
   }

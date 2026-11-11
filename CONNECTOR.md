@@ -86,6 +86,13 @@ the sign-in immediately, remove the extra identifiers in **Sign-in experience �
 | Admin Console says "Insecure contexts (non-HTTPS) are not supported" | Serve the Console over HTTPS; Web Crypto needs a secure context.                                                                   |
 | Admin Console says "does not match any configured admin endpoint"    | Behind a reverse proxy set `TRUST_PROXY_HEADER=1` and make `ADMIN_ENDPOINT` match the public URL.                                  |
 
+### 8. E-mail and phone sync
+
+The connector automatically adds `email` / `phone` to the VK scope when the matching **Sync**
+switch is on. VK must still allow the scope in the VK ID application dashboard; `phone`
+additionally requires a verified business profile. See [`docs/VK-CONTACTS.md`](docs/VK-CONTACTS.md)
+for the checklist, diagnostics and deployment notes.
+
 ## Русский
 
 Добавьте вход «Продолжить с VK» в сценарий входа Logto. Коннектор реализует современный протокол
@@ -164,3 +171,9 @@ Logto сам сохраняет имя из VK — отдельного шага
 | Вход выполнен, но e-mail/телефона нет                           | Выключены синхронизации или scope не включён в кабинете VK ID.                                                      |
 | Console пишет «Insecure contexts (non-HTTPS) are not supported» | Admin Console должен работать по HTTPS.                                                                             |
 | Console пишет «does not match any configured admin endpoint»    | За прокси задайте `TRUST_PROXY_HEADER=1` и проверьте `ADMIN_ENDPOINT`.                                              |
+
+### 8. E-mail и телефон
+
+При включённом переключателе **Sync** коннектор сам добавляет `email`/`phone` в scope VK.
+Разрешение всё равно должно быть включено в кабинете VK ID; для телефона нужен подтверждённый
+бизнес-профиль. Чеклист, диагностика и деплой — в [`docs/VK-CONTACTS.md`](docs/VK-CONTACTS.md).
