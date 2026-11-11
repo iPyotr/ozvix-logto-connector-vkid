@@ -5,11 +5,11 @@
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OZVIX/ozvix-logto-connector-vkid.git"
+    "url": "git+https://github.com/iPyotr/ozvix-logto-connector-vkid.git"
   },
-  "homepage": "https://github.com/OZVIX/ozvix-logto-connector-vkid#readme",
+  "homepage": "https://github.com/iPyotr/ozvix-logto-connector-vkid#readme",
   "bugs": {
-    "url": "https://github.com/OZVIX/ozvix-logto-connector-vkid/issues"
+    "url": "https://github.com/iPyotr/ozvix-logto-connector-vkid/issues"
   },
   "keywords": [
     "logto",

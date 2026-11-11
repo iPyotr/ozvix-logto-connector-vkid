@@ -1,6 +1,6 @@
 # ozvix-logto-connector-vkid
 
-[![CI](https://github.com/OZVIX/ozvix-logto-connector-vkid/actions/workflows/ci.yml/badge.svg)](https://github.com/OZVIX/ozvix-logto-connector-vkid/actions/workflows/ci.yml)
+[![CI](https://github.com/iPyotr/ozvix-logto-connector-vkid/actions/workflows/ci.yml/badge.svg)](https://github.com/iPyotr/ozvix-logto-connector-vkid/actions/workflows/ci.yml)
 [![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](LICENSE)
 [![Logto OSS 1.46.0](https://img.shields.io/badge/Logto%20OSS-1.46.0-6c47ff.svg)](https://logto.io)
 [![VK OAuth 2.1](https://img.shields.io/badge/VK-OAuth%202.1-07f.svg)](https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/realization)

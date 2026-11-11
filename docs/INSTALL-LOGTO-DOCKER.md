@@ -148,7 +148,7 @@ callback URI that Logto shows in the connector settings as the trusted redirect 
 ### 4.1 Get the sources onto the host
 
 ```bash
-sudo git clone https://github.com/OZVIX/ozvix-logto-connector-vkid.git /opt/ozvix-logto-connector-vkid
+sudo git clone https://github.com/iPyotr/ozvix-logto-connector-vkid.git /opt/ozvix-logto-connector-vkid
 cd /opt/ozvix-logto-connector-vkid
 sudo git checkout v1.0.0        # pin a release tag, never deploy a moving branch
 ```

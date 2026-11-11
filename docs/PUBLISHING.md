@@ -17,7 +17,7 @@ GitHub Desktop is enough:
 4. Click **Publish repository**:
    - name: `ozvix-logto-connector-vkid`
    - description: see §2
-   - organisation: `OZVIX` if the dropdown offers it, otherwise your personal account
+   - owner: `iPyotr` (or an organisation you can publish to), otherwise your personal account
    - clear **Keep this code private**
 5. If the organisation is not offered, create an empty repository at
    `https://github.com/organizations/OZVIX/repositories/new` (no README, no licence), then in
@@ -25,7 +25,7 @@ GitHub Desktop is enough:
    **Push origin**.
 
 After the push, check that the CI badge resolves. If the owner or repository name differs from
-`OZVIX/ozvix-logto-connector-vkid`, update the badge URLs in `README.md` and `README.ru.md` and the
+`iPyotr/ozvix-logto-connector-vkid`, update the badge URLs in `README.md` and `README.ru.md` and the
 `repository` / `homepage` / `bugs` fields in `package.json`.
 
 ## 2. About section
@@ -103,7 +103,7 @@ Docker build uses public base images.
 
 ## 7. Final checklist
 
-- [ ] Sanitized checkout pushed to `OZVIX/ozvix-logto-connector-vkid` (or your account)
+- [ ] Sanitized checkout pushed to `iPyotr/ozvix-logto-connector-vkid` (or your account)
 - [ ] Description, topics and social preview set
 - [ ] CI green on `main` (verify + integration + audit + docker)
 - [ ] `v1.1.0` tag and release published

@@ -60,7 +60,7 @@ Pin the base to the exact Logto image your deployment runs — a tag is fine for
 preferred in production:
 
 ```bash
-git clone https://github.com/OZVIX/ozvix-logto-connector-vkid.git
+git clone https://github.com/iPyotr/ozvix-logto-connector-vkid.git
 cd ozvix-logto-connector-vkid
 
 docker build \

@@ -40,7 +40,7 @@ FROM ${LOGTO_BASE_IMAGE}
 
 LABEL org.opencontainers.image.title="logto-vkid" \
       org.opencontainers.image.description="Logto OSS 1.46.0 with the OZVIX VK ID social connector" \
-      org.opencontainers.image.source="https://github.com/OZVIX/ozvix-logto-connector-vkid" \
+      org.opencontainers.image.source="https://github.com/iPyotr/ozvix-logto-connector-vkid" \
       org.opencontainers.image.licenses="MPL-2.0"
 
 # Directory name is arbitrary; the loader keys off the package.json "name" field.
