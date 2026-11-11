@@ -62,7 +62,21 @@ docker logs logto-logto-1 2>&1 | grep '\[vkid\]' | tail
   разрешений VK ID, а не коннектора.
 - Если `token_scope` не содержит `email`/`phone`, VK не выдал scope — проверьте кабинет VK ID.
 
-## 6. Деплой образа
+## 6. Фактический результат (2026-11-11)
+
+После включения e-mail в кабинете VK ID и свежего входа диагностика показала:
+
+```text
+[vkid] authorize scope: vkid.personal_info email phone
+[vkid] user_info presence: {"email":true,"phone":false,"first_name":true,
+                            "token_scope":"email vkid.personal_info",...}
+```
+
+- **E-mail работает**: VK выдал scope `email` и вернул поле; Logto сохранил адрес.
+- **Телефон не работает**: VK не выдал `phone` и не вернул поле, хотя коннектор его запрашивает.
+  Это ограничение приложения VK ID; для телефона нужен подтверждённый бизнес-профиль.
+
+## 7. Деплой образа
 
 Полная сборка (канонический `Dockerfile`):
 
