@@ -15,8 +15,8 @@ Target environment (as deployed):
 | Existing connectors        | `/etc/logto/packages/connectors`                                                 |
 | Custom connector directory | `/etc/logto/packages/core/connectors`                                            |
 | PostgreSQL                 | separate container in the same compose project                                   |
-| Public endpoint            | `https://auth.example.com`                                                          |
-| Admin console              | `https://auth-admin.example.com`                                                    |
+| Public endpoint            | `https://auth.example.com`                                                       |
+| Admin console              | `https://auth-admin.example.com`                                                 |
 | Reverse proxy              | Caddy                                                                            |
 | Sign-in mode               | social-only (username/password registration disabled), Yandex ID already enabled |
 
