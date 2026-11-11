@@ -1,0 +1,17 @@
+# Docker Compose override for a Logto OSS 1.46.0 stack that should use the VK ID connector.
+#
+# Do NOT replace your working compose.yaml with this file. Merge only the `logto.image` key into
+# the existing service definition, or pass this file as an additional override:
+#
+#   docker compose -f /opt/logto/compose.yaml -f compose.override.yaml up -d
+#
+# Everything else (PostgreSQL, volumes, ports, ENDPOINT/ADMIN_ENDPOINT, Caddy) stays untouched,
+# so the user database and the OIDC issuer do not change.
+
+services:
+  logto:
+    # Image built from the Dockerfile in the repository root:
+    #   docker build -t ozvix/logto-vkid:1.46.0 .
+    image: ozvix/logto-vkid:1.46.0
+    # Keep the previous image tag available for rollback:
+    #   docker image tag ozvix/logto-vkid:1.46.0 ozvix/logto-vkid:rollback

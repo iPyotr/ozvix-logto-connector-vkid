@@ -1,0 +1,15 @@
+# Normalize line endings so shell scripts and YAML stay usable across Windows checkouts.
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Binary-ish artifacts kept as audit evidence.
+*.tgz binary
+*.svg text eol=lf

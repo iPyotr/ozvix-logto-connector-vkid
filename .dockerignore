@@ -1,0 +1,17 @@
+.git
+.github
+.gitignore
+node_modules
+lib
+dist
+coverage
+upstream
+tests
+mock-vkid
+docs
+deploy
+compose.test.yaml
+*.log
+.env
+.env.*
+!.env.example

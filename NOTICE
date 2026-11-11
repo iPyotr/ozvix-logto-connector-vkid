@@ -1,0 +1,89 @@
+# NOTICE
+
+## Project
+
+`@ozvix/connector-vkid` — VK ID social connector for Logto OSS.
+Copyright (c) 2026 OZVIX contributors.
+
+Licensed under the Mozilla Public License, Version 2.0. A copy of the license is in
+[`LICENSE`](LICENSE), and the notice required by MPL-2.0 Exhibit A applies to every source file in
+this repository:
+
+> This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy
+> of the MPL was not distributed with this file, You can obtain one at
+> <https://mozilla.org/MPL/2.0/>.
+
+## This is a derivative work
+
+This project is **not** an original implementation. It is a derivative of the works listed below,
+and it remains under MPL-2.0 because those works are MPL-2.0. See
+[`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md) §2–§4 for the full evidence chain.
+
+### Provenance chain
+
+**1. Logto** — <https://github.com/logto-io/logto> (MPL-2.0)
+Copyright Silverhand Inc. and Logto contributors.
+
+`packages/connectors/connector-github` is the structural origin of the upstream connector: the
+upstream `README.md` and `src/index.test.ts` were carried over from that connector almost verbatim
+(they still nock the GitHub REST API and assert GitHub fields such as `avatar_url`,
+`rawData.userEmails`, the scope `read:user user:email`, and the Octocat fixture), and the
+implementation keeps the same call structure.
+
+**2. `@workingbit/connector-vk`** — npm, versions `0.0.0-stage` … `0.0.4`, declared `MPL-2.0`
+Source repository: <https://github.com/lynx-r/logto-connector-vk>
+
+| Item | Value |
+| --- | --- |
+| Audited version | `0.0.4` |
+| Tarball | `workingbit-connector-vk-0.0.4.tgz` |
+| npm shasum | `c4c73b88271b08a41271b9a14faf38e556d962d0` |
+| npm integrity | `sha512-2epu6hd1rsam0JpraLz1pjUHuMhpF8Vg/dMmcKi3S2yI+eRfK4ZOJxQUPsn2Oos1cupMEq9NePPlkA0DOktgug==` |
+| `gitHead` in package.json | `a8de9e8748e06dfda31cab06b55a53a0bffa846a` (not present in the public repository) |
+| Recovered sources | `lib/index.js.map` → `sourcesContent` for `src/index.ts`, `src/constant.ts`, `src/types.ts` |
+
+The recovered sources are byte-identical to the repository blobs of `src/index.ts`,
+`src/constant.ts` and `src/types.ts` (Git blob SHAs `982740757cdb…`, `dc28c15f6aee…`,
+`75f3fff83a76…`). The upstream npm artifacts are **not redistributed in this repository**: they are
+published on npm, so their source is already available from the original distributor. The audit
+records the npm shasum and integrity above so the examined bytes can be verified independently.
+
+**3. This project** — derived from (2), which derives from (1).
+
+## Modifications
+
+MPL-2.0 §3.1 requires recipients to be informed about the license and how to obtain the source,
+and it is good practice to identify what changed. Files that carry upstream content, and the nature
+of the change:
+
+| File | Upstream origin | Change |
+| --- | --- | --- |
+| `src/constant.ts` | `src/constant.ts` | VK ID endpoints and default scope kept and documented; metadata description/form items rewritten; `clientSecret` form item replaced by `serviceToken`; timeout constant changed |
+| `src/types.ts` | `src/types.ts` | Guards rewritten: callback no longer requires `redirectUri`; token-response fields made optional; config credential model corrected; redirect-URI/scope validation added; connector-session guard added |
+| `src/index.ts` | `src/index.ts` | Callback pipeline rewritten: session-bound PKCE verifier, `state` and redirect URI; provider-error mapping; token/profile subject consistency check; secret-free error payloads; token response normalization |
+| `src/pkce.ts` | upstream used `pkce-challenge` (bundled, undeclared) | replaced by a `node:crypto` S256 implementation |
+| `src/http.ts` | new (upstream used `ky` inline) | platform `fetch` transport with a timeout/error taxonomy |
+| `src/client.ts` | new (upstream logic was inline in `src/index.ts`) | VK ID API client and error mapping |
+| `src/profile.ts` | new (upstream mapping was inline) | profile normalization, name/avatar/e-mail/phone policy |
+| `tests/**` | new | written from scratch; the upstream tests were GitHub connector tests and could not run |
+| `README.md`, `README.ru.md`, `docs/**` | new | rewritten from scratch; the upstream README described GitHub, not VK ID |
+| `logo.png`, `logo-dark.png` | upstream logo files **not** reused | connector icon supplied for this project; it carries the VK wordmark and is used nominatively to identify the provider. VK and the VK logo are trademarks of their respective owners; no endorsement is implied |
+
+No file from the upstream work was copied verbatim into this repository except the already-public
+endpoint/scope constants and the resulting behaviour, both of which were re-derived from the VK ID
+documentation. The provenance table is kept for honesty and to satisfy attribution expectations.
+
+## Trademarks
+
+VK, VK ID and the VK logo are trademarks of their respective owners. This project is an
+independent integration and is not affiliated with, endorsed by or sponsored by VK or by Logto.
+The connector icon in this repository (`/logo.png`, `/logo-dark.png`) contains the VK wordmark and is
+used **nominatively** to identify the sign-in provider in the Logto Connector gallery. It is not an
+official VK asset and does not imply endorsement. The icon is not part of the executable bundle and
+can be replaced with neutral artwork without affecting the connector's behaviour.
+
+The upstream npm package is identified by its shasum `c4c73b88271b08a41271b9a14faf38e556d962d0`
+and integrity `sha512-2epu6hd1rsam0JpraLz1pjUHuMhpF8Vg/dMmcKi3S2yI+eRfK4ZOJxQUPsn2Oos1cupMEq9NePPlkA0DOktgug==`,
+as recorded above. It is not vendored into this repository; fetch it from npm if you need to verify
+the audit. No upstream logo asset is redistributed here: the connector icon is the artwork described
+in the Trademarks section.

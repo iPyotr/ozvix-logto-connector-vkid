@@ -1,0 +1,200 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Coverage
+        if: matrix.node == 22
+        run: npm run test:coverage
+
+      - name: Upload coverage artifact
+        if: matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify the published bundle imports only Logto-provided packages
+        run: |
+          node -e '
+            const fs = require("fs");
+            const source = fs.readFileSync("lib/index.js", "utf8");
+            const imports = [...source.matchAll(/(?:^|\n)\s*(?:import|export)[^;\n]*?from\s+["\x27]([^"\x27]+)["\x27]/g)].map((m) => m[1]);
+            const bare = [...new Set(imports)].filter((s) => !s.startsWith(".") && !s.startsWith("node:") && !s.startsWith("crypto") && !s.startsWith("fs") && !s.startsWith("path"));
+            console.log("bare imports:", bare.join(", ") || "(none)");
+            const allowed = new Set(["@logto/connector-kit", "zod"]);
+            const unexpected = bare.filter((s) => !allowed.has(s));
+            if (unexpected.length > 0) {
+              console.error("::error::lib/index.js imports packages Logto does not provide:", unexpected.join(", "));
+              process.exit(1);
+            }
+          '
+
+      - name: Package contents (npm pack dry run)
+        run: npm pack --dry-run
+
+  integration:
+    name: Integration (Logto 1.46.0 + mock VK)
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start the test stack
+        run: |
+          cp .env.test.example .env
+          docker compose -f compose.test.yaml up -d --build
+
+      - name: Wait for Logto and the mock provider
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://localhost:3001/api/status >/dev/null 2>&1 &&
+              curl -fsS http://localhost:8090/health >/dev/null 2>&1; then
+              echo "stack is up after ${attempt} attempts"
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose -f compose.test.yaml ps
+          exit 1
+
+      - name: Connector discovery and full OAuth flow inside the image
+        run: |
+          docker compose -f compose.test.yaml cp docker/vkid-proof.mjs logto:/tmp/vkid-proof.mjs
+          docker compose -f compose.test.yaml exec -T logto node /tmp/vkid-proof.mjs | tee proof.txt
+          grep -q "PROOF OK" proof.txt
+
+      - name: State-length compatibility patch is applied
+        run: |
+          docker compose -f compose.test.yaml exec -T logto sh -c \
+            'grep -q "jm(32)" /etc/logto/packages/experience/dist/assets/index-*.js'
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose -f compose.test.yaml logs --tail 200
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f compose.test.yaml down -v
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: "Production dependency audit (gate: critical advisories only)"
+        # The connector's only runtime dependencies are @logto/connector-kit and zod, and both are
+        # already present in the official Logto 1.46.0 image, which pins zod 3.24.3 itself.
+        # Advisories inherited from those pinned packages are reported but cannot be fixed here
+        # without diverging from the Logto runtime; see docs/SECURITY-AUDIT.md section 5.3.
+        run: |
+          npm audit --omit=dev --json > audit-prod.json || true
+          node -e '
+            const a = require("./audit-prod.json");
+            const v = a.metadata?.vulnerabilities ?? {};
+            console.log("production advisories:", JSON.stringify(v));
+            const critical = Object.entries(a.vulnerabilities ?? {})
+              .filter(([, x]) => x.severity === "critical");
+            if (critical.length > 0) {
+              console.error("Critical advisories in production dependencies:",
+                critical.map(([n]) => n).join(", "));
+              process.exit(1);
+            }
+          '
+
+      - name: Full audit report (informational)
+        run: npm audit || true
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit
+          path: audit-prod.json
+          if-no-files-found: ignore
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build the derived Logto image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ozvix/logto-vkid:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Assert the connector is present in the image
+        run: |
+          set -eu
+          docker run --rm --entrypoint sh ozvix/logto-vkid:ci -c \
+            'test -f /etc/logto/packages/core/connectors/connector-ozvix-vkid/lib/index.js && test -f /etc/logto/packages/core/connectors/connector-ozvix-vkid/package.json && echo "connector present in image"'

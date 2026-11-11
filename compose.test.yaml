@@ -1,0 +1,143 @@
+# =============================================================================
+# ozvix-logto-connector-vkid -- local integration test stack
+# =============================================================================
+# Brings up, with ONE command:
+#   * postgres:16-alpine        - disposable test database (NEVER published to host)
+#   * ozvix/logto-vkid:test     - Logto OSS 1.46.0 + this VK ID connector,
+#                                 built from ./Dockerfile (endpoint :3001, admin :3002)
+#   * mock-vkid                 - dependency-free mock of the modern VK ID OAuth 2.1
+#                                 provider (mock profile only)
+#
+#   cp .env.test.example .env
+#   docker compose -f compose.test.yaml up -d --build
+#   docker compose -f compose.test.yaml ps
+#   docker compose -f compose.test.yaml down -v      # also removes the test DB volume
+#
+# Profiles:
+#   mock (default via .env COMPOSE_PROFILES=mock) -> full stack incl. the mock
+#                                                 VK ID provider (no real creds)
+#   real                                          -> no mock provider; the connector
+#                                                 is configured with real VK ID
+#                                                 credentials from .env / Admin Console
+#
+# Everything is project-scoped (`name:` below), so `down -v` only ever touches
+# THIS project's containers/volumes, never anything else on the machine.
+# PostgreSQL is deliberately not exposed to the host.
+#
+# Connector loading (verified against svhd/logto:1.46.0):
+#   Logto scans /etc/logto/packages/core/connectors at runtime, and for every
+#   child directory whose package.json name is connector-* (or @scope/connector-*)
+#   imports <dir>/lib/index.js through @logto/cli's loader. ./Dockerfile derives
+#   from the official image, builds the connector with tsup and copies the built
+#   package into that directory. No Logto rebuild, no bind mounts.
+# =============================================================================
+
+name: ozvix-logto-vkid-test
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-logto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-logto_local_test_password}
+      POSTGRES_DB: ${POSTGRES_DB:-logto}
+    volumes:
+      - logto-pgdata:/var/lib/postgresql/data
+    # No `ports:` on purpose: the test database must not be reachable from the host.
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 10s
+    networks:
+      - testnet
+
+  logto:
+    # Derived image: official svhd/logto:1.46.0 + the built connector package.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ozvix/logto-vkid:test
+    profiles: ["mock", "real"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The logto image does not seed the database by itself; the official Logto
+    # docker-compose runs `db seed --swe` before `npm start`. The seeding step is
+    # idempotent, so it is safe on every boot of a fresh test volume.
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    environment:
+      DB_URL: postgres://${POSTGRES_USER:-logto}:${POSTGRES_PASSWORD:-logto_local_test_password}@postgres:5432/${POSTGRES_DB:-logto}
+      ENDPOINT: ${LOGTO_ENDPOINT:-http://localhost:3001}
+      ADMIN_ENDPOINT: ${LOGTO_ADMIN_ENDPOINT:-http://localhost:3002}
+      # Logto 1.46.0 reads TRUST_PROXY_HEADER and ignores the older TRUST_PROXY. Without it the
+      # request origin stays http and the admin console refuses the https ADMIN_ENDPOINT
+      # ("served by the default tenant, which does not host the Console").
+      TRUST_PROXY_HEADER: "1"
+    ports:
+      - "${LOGTO_PORT:-3001}:3001"
+      - "${LOGTO_ADMIN_PORT:-3002}:3002"
+      # mock-vkid runs inside THIS container's network namespace (see below), so
+      # 8090 is published here: it serves the mock to the host browser.
+      - "${MOCK_VKID_HOST_PORT:-8090}:8090"
+    volumes:
+      # Test-only landing page for the demo application's OIDC redirect. It replaces the Experience
+      # 404 that a bare `/callback` would render, without touching the production image.
+      - ./docker/callback-demo.html:/etc/logto/packages/experience/dist/callback-demo.html:ro
+    healthcheck:
+      test: [
+          "CMD-SHELL",
+          # /api/status answers 204 No Content (r.ok === true for 2xx).
+          'node -e "fetch(''http://127.0.0.1:3001/api/status'').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 48
+      start_period: 90s
+    networks:
+      - testnet
+
+  mock-vkid:
+    build:
+      context: ./mock-vkid
+      dockerfile: Dockerfile
+    profiles: ["mock"]
+    # The connector's apiBaseUrl guard allows plain HTTP for loopback hosts only,
+    # so the mock must answer on the Logto container's own localhost:8090.
+    # Sharing Logto's network namespace achieves that with zero changes to src/:
+    #   * Logto container  -> http://localhost:8090      (loopback, in-namespace)
+    #   * host browser     -> http://localhost:8090      (published by logto)
+    network_mode: "service:logto"
+    depends_on:
+      logto:
+        condition: service_started
+    environment:
+      MOCK_VKID_HOST: "0.0.0.0"
+      MOCK_VKID_PORT: "8090"
+      MOCK_VKID_CLIENT_IDS: ${MOCK_VKID_CLIENT_IDS:-mock-vkid-client-id}
+      MOCK_VKID_REDIRECT_URIS: ${MOCK_VKID_REDIRECT_URIS:-http://localhost:3001/callback,http://localhost:3001/callback/vkid,http://localhost:3001/callback/*}
+      MOCK_VKID_SLOW_MS: ${MOCK_VKID_SLOW_MS:-30000}
+      MOCK_VKID_TOKEN_MODE: ${MOCK_VKID_TOKEN_MODE:-}
+      MOCK_VKID_USER_MODE: ${MOCK_VKID_USER_MODE:-}
+      MOCK_VKID_LOG_REQUESTS: "1"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://127.0.0.1:8090/health'').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+volumes:
+  logto-pgdata:
+    # Project-scoped name: ozvix-logto-vkid-test_logto-pgdata
+    name: ozvix-logto-vkid-test_logto-pgdata
+
+networks:
+  testnet:
+    name: ozvix-logto-vkid-test-net
+    driver: bridge

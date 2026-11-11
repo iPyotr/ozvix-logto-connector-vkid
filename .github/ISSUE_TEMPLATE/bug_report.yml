@@ -1,0 +1,66 @@
+name: Bug report
+description: Something in the connector does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Do not include tokens, authorization codes, PKCE verifiers or
+        service tokens.** Redact them first; for security issues use the private advisory flow in
+        [SECURITY.md](../SECURITY.md) instead.
+  - type: input
+    id: connector-version
+    attributes:
+      label: Connector version
+      placeholder: 1.0.0 (npm package or image tag)
+    validations:
+      required: true
+  - type: input
+    id: logto-version
+    attributes:
+      label: Logto version
+      placeholder: 1.46.0 (self-hosted OSS)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the sign-in page
+        2. Click "Continue with VK"
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the error code (`connector.*`) and the redacted Logto log lines.
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Connector configuration
+      description: Field values with secrets removed (Client ID is fine, Service token is not).
+      placeholder: |
+        scope: vkid.personal_info
+        syncEmail: false
+        syncPhone: false
+        apiBaseUrl: (default)
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I removed all tokens, codes, verifiers and secrets from this report.
+          required: true
+        - label: I checked docs/TROUBLESHOOTING.md.
+          required: true

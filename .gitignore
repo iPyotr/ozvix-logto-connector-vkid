@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output (produced by `npm run build`; connector images build it themselves).
+# Anchored to the repository root.
+/lib/
+/dist/
+*.tsbuildinfo
+
+# Test and coverage artifacts
+coverage/
+.vitest/
+test-results/
+
+# Local environment / secrets — never commit these
+.env
+.env.*
+!.env.example
+!.env.test.example
+*.pem
+*.key
+secrets/
+
+# Local audit scratch files
+audit-own.json
+audit-*.json
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

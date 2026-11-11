@@ -1,0 +1,77 @@
+{
+  "name": "@ozvix/connector-vkid",
+  "version": "1.1.0",
+  "description": "VK OAuth 2.1 social connector for Logto OSS (Authorization Code + PKCE)",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OZVIX/ozvix-logto-connector-vkid.git"
+  },
+  "homepage": "https://github.com/OZVIX/ozvix-logto-connector-vkid#readme",
+  "bugs": {
+    "url": "https://github.com/OZVIX/ozvix-logto-connector-vkid/issues"
+  },
+  "keywords": [
+    "logto",
+    "logto-connector",
+    "vk",
+    "vk-id",
+    "oauth2",
+    "pkce"
+  ],
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "logo.png",
+    "logo-dark.png",
+    "README.md",
+    "CONNECTOR.md",
+    "LICENSE",
+    "NOTICE",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "verify": "npm run check && npm run lint && npm run format:check && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@logto/connector-kit": "^5.2.0",
+    "zod": "3.24.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/node": "^22.10.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.15.0",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.16.0",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
